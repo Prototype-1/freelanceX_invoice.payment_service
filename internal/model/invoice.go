@@ -13,8 +13,9 @@ type Invoice struct {
 	Type          string    `gorm:"type:varchar(50);not null"` 
 	Status        string    `gorm:"type:varchar(50);default:'draft'"`
 	Amount        float64   `gorm:"type:numeric;not null"`
-	Description   string    `gorm:"type:text"`
 	DueDate       *time.Time
+	HoursWorked   float64   
+	HourlyRate    float64
 	CreatedAt     time.Time `gorm:"autoCreateTime"`
 	UpdatedAt     time.Time `gorm:"autoUpdateTime"`
 }
