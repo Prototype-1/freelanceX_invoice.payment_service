@@ -24,6 +24,7 @@ const (
 	InvoiceService_GetInvoicesByUser_FullMethodName    = "/freelanceX.invoice.InvoiceService/GetInvoicesByUser"
 	InvoiceService_GetInvoicesByProject_FullMethodName = "/freelanceX.invoice.InvoiceService/GetInvoicesByProject"
 	InvoiceService_UpdateInvoiceStatus_FullMethodName  = "/freelanceX.invoice.InvoiceService/UpdateInvoiceStatus"
+	InvoiceService_GetInvoicePDF_FullMethodName        = "/freelanceX.invoice.InvoiceService/GetInvoicePDF"
 )
 
 // InvoiceServiceClient is the client API for InvoiceService service.
@@ -37,6 +38,7 @@ type InvoiceServiceClient interface {
 	GetInvoicesByUser(ctx context.Context, in *GetInvoicesByUserRequest, opts ...grpc.CallOption) (*InvoicesResponse, error)
 	GetInvoicesByProject(ctx context.Context, in *GetInvoicesByProjectRequest, opts ...grpc.CallOption) (*InvoicesResponse, error)
 	UpdateInvoiceStatus(ctx context.Context, in *UpdateInvoiceStatusRequest, opts ...grpc.CallOption) (*InvoiceResponse, error)
+	GetInvoicePDF(ctx context.Context, in *GetInvoicePDFRequest, opts ...grpc.CallOption) (*GetInvoicePDFResponse, error)
 }
 
 type invoiceServiceClient struct {
@@ -97,6 +99,16 @@ func (c *invoiceServiceClient) UpdateInvoiceStatus(ctx context.Context, in *Upda
 	return out, nil
 }
 
+func (c *invoiceServiceClient) GetInvoicePDF(ctx context.Context, in *GetInvoicePDFRequest, opts ...grpc.CallOption) (*GetInvoicePDFResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetInvoicePDFResponse)
+	err := c.cc.Invoke(ctx, InvoiceService_GetInvoicePDF_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // InvoiceServiceServer is the server API for InvoiceService service.
 // All implementations must embed UnimplementedInvoiceServiceServer
 // for forward compatibility.
@@ -108,6 +120,7 @@ type InvoiceServiceServer interface {
 	GetInvoicesByUser(context.Context, *GetInvoicesByUserRequest) (*InvoicesResponse, error)
 	GetInvoicesByProject(context.Context, *GetInvoicesByProjectRequest) (*InvoicesResponse, error)
 	UpdateInvoiceStatus(context.Context, *UpdateInvoiceStatusRequest) (*InvoiceResponse, error)
+	GetInvoicePDF(context.Context, *GetInvoicePDFRequest) (*GetInvoicePDFResponse, error)
 	mustEmbedUnimplementedInvoiceServiceServer()
 }
 
@@ -132,6 +145,9 @@ func (UnimplementedInvoiceServiceServer) GetInvoicesByProject(context.Context, *
 }
 func (UnimplementedInvoiceServiceServer) UpdateInvoiceStatus(context.Context, *UpdateInvoiceStatusRequest) (*InvoiceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateInvoiceStatus not implemented")
+}
+func (UnimplementedInvoiceServiceServer) GetInvoicePDF(context.Context, *GetInvoicePDFRequest) (*GetInvoicePDFResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetInvoicePDF not implemented")
 }
 func (UnimplementedInvoiceServiceServer) mustEmbedUnimplementedInvoiceServiceServer() {}
 func (UnimplementedInvoiceServiceServer) testEmbeddedByValue()                        {}
@@ -244,6 +260,24 @@ func _InvoiceService_UpdateInvoiceStatus_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _InvoiceService_GetInvoicePDF_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetInvoicePDFRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InvoiceServiceServer).GetInvoicePDF(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InvoiceService_GetInvoicePDF_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InvoiceServiceServer).GetInvoicePDF(ctx, req.(*GetInvoicePDFRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // InvoiceService_ServiceDesc is the grpc.ServiceDesc for InvoiceService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -270,6 +304,10 @@ var InvoiceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateInvoiceStatus",
 			Handler:    _InvoiceService_UpdateInvoiceStatus_Handler,
+		},
+		{
+			MethodName: "GetInvoicePDF",
+			Handler:    _InvoiceService_GetInvoicePDF_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

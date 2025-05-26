@@ -10,6 +10,7 @@ import (
 	invoicepb "github.com/Prototype-1/freelanceX_invoice.payment_service/proto/invoice_service"
 	profilepb "github.com/Prototype-1/freelanceX_invoice.payment_service/proto/user_service"
 	timepb "github.com/Prototype-1/freelanceX_invoice.payment_service/proto/timeTracker_service"
+	"github.com/Prototype-1/freelanceX_invoice.payment_service/kafka"
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -20,12 +21,20 @@ type InvoiceHandler struct {
 	MilestoneService   *service.MilestoneRuleService
 	ProfileClient     profilepb.ProfileServiceClient
 	TimeTrackerClient timepb.TimeLogServiceClient
+	KafkaBroker        string
+	KafkaTopic         string
 }
 
-func NewInvoiceHandler(repo repository.InvoiceRepository, milestoneSvc *service.MilestoneRuleService) *InvoiceHandler {
+func NewInvoiceHandler(
+	repo repository.InvoiceRepository,
+	milestoneSvc *service.MilestoneRuleService,
+	kafkaBroker, kafkaTopic string,
+) *InvoiceHandler {
 	return &InvoiceHandler{
 		Repo:             repo,
 		MilestoneService: milestoneSvc,
+		KafkaBroker:      kafkaBroker,
+		KafkaTopic:       kafkaTopic,
 	}
 }
 
@@ -50,7 +59,6 @@ func (h *InvoiceHandler) CreateInvoice(ctx context.Context, req *invoicepb.Creat
 		amount = req.GetFixedAmount()
 
 	case invoicepb.InvoiceType_HOURLY:
-		// 1. Get hourly rate from profile
 		profileResp, err := h.ProfileClient.GetProfile(ctx, &profilepb.GetProfileRequest{
 			UserId: req.GetFreelancerId(),
 		})
@@ -108,6 +116,17 @@ func (h *InvoiceHandler) CreateInvoice(ctx context.Context, req *invoicepb.Creat
 	if err := h.Repo.CreateInvoice(ctx, invoice); err != nil {
 		return nil, fmt.Errorf("failed to create invoice: %v", err)
 	}
+
+event := kafka.InvoiceEvent{
+    InvoiceID: invoice.ID.String(),
+    ClientID:  invoice.ClientID.String(),
+    EventType: "invoice_created",
+}
+
+if err := kafka.ProduceInvoiceEvent("localhost:9092", "invoice-events", event); err != nil {
+    fmt.Printf("failed to send Kafka event: %v\n", err)
+}
+
 
 	resp := &invoicepb.InvoiceResponse{
 		Invoice: &invoicepb.Invoice{

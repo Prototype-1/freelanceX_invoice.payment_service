@@ -13,6 +13,7 @@ service InvoiceService {
   rpc GetInvoicesByUser(GetInvoicesByUserRequest) returns (InvoicesResponse);
   rpc GetInvoicesByProject(GetInvoicesByProjectRequest) returns (InvoicesResponse);
   rpc UpdateInvoiceStatus(UpdateInvoiceStatusRequest) returns (InvoiceResponse);
+  rpc GetInvoicePDF(GetInvoicePDFRequest) returns (GetInvoicePDFResponse);
 }
 
 // === Enums ===
@@ -82,4 +83,12 @@ message InvoiceResponse {
 
 message InvoicesResponse {
   repeated Invoice invoices = 1;
+}
+
+message GetInvoicePDFRequest {
+  string invoice_id = 1;
+}
+
+message GetInvoicePDFResponse {
+  bytes pdf_data = 1;
 }
