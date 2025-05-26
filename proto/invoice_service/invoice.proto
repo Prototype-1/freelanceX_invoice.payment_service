@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package freelanceX.invoice;
+
+option go_package = "github.com/Prototype-1/freelanceX_invoice.payment_service/proto/invoice_service;invoicepb";
+
+import "google/protobuf/timestamp.proto";
+
+// === Service ===
+service InvoiceService {
+  rpc CreateInvoice(CreateInvoiceRequest) returns (InvoiceResponse);
+  rpc GetInvoice(GetInvoiceRequest) returns (InvoiceResponse);
+  rpc GetInvoicesByUser(GetInvoicesByUserRequest) returns (InvoicesResponse);
+  rpc GetInvoicesByProject(GetInvoicesByProjectRequest) returns (InvoicesResponse);
+  rpc UpdateInvoiceStatus(UpdateInvoiceStatusRequest) returns (InvoiceResponse);
+}
+
+// === Enums ===
+enum InvoiceStatus {
+  PENDING = 0;
+  PAID = 1;
+  OVERDUE = 2;
+  CANCELLED = 3;
+}
+
+enum InvoiceType {
+  FIXED = 0;
+  HOURLY = 1;
+}
+
+// === Messages ===
+message CreateInvoiceRequest {
+  string freelancer_id = 1;
+  string client_id = 2;
+  string project_id = 3;
+  InvoiceType type = 4;
+  double fixed_amount = 5; // only if FIXED
+  google.protobuf.Timestamp date_from = 6; // for HOURLY
+  google.protobuf.Timestamp date_to = 7;   // for HOURLY
+}
+
+message GetInvoiceRequest {
+  string invoice_id = 1;
+}
+
+message GetInvoicesByUserRequest {
+  string user_id = 1;
+  string role = 2; // "freelancer" or "client"
+}
+
+message GetInvoicesByProjectRequest {
+  string project_id = 1;
+}
+
+message UpdateInvoiceStatusRequest {
+  string invoice_id = 1;
+  InvoiceStatus status = 2;
+}
+
+message Invoice {
+  string invoice_id = 1;
+  string freelancer_id = 2;
+  string client_id = 3;
+  string project_id = 4;
+  InvoiceType type = 5;
+  double amount = 6;
+  double hourly_rate = 7;
+  double hours_worked = 8;
+  InvoiceStatus status = 9;
+  google.protobuf.Timestamp issued_at = 10;
+  google.protobuf.Timestamp due_date = 11;
+  google.protobuf.Timestamp date_from = 12;
+  google.protobuf.Timestamp date_to = 13;
+}
+
+message InvoiceResponse {
+  Invoice invoice = 1;
+}
+
+message InvoicesResponse {
+  repeated Invoice invoices = 1;
+}
