@@ -16,6 +16,7 @@ type Invoice struct {
 	DueDate       *time.Time
 	HoursWorked   float64   
 	HourlyRate    float64
+	MilestonePhase string `gorm:"type:varchar(50)"`
 	CreatedAt     time.Time `gorm:"autoCreateTime"`
 	UpdatedAt     time.Time `gorm:"autoUpdateTime"`
 }

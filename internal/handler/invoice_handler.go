@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 	"github.com/Prototype-1/freelanceX_invoice.payment_service/internal/model"
+	"github.com/Prototype-1/freelanceX_invoice.payment_service/internal/service"
 	"github.com/Prototype-1/freelanceX_invoice.payment_service/internal/repository"
 	invoicepb "github.com/Prototype-1/freelanceX_invoice.payment_service/proto/invoice_service"
 	profilepb "github.com/Prototype-1/freelanceX_invoice.payment_service/proto/user_service"
@@ -16,13 +17,15 @@ import (
 type InvoiceHandler struct {
 	invoicepb.UnimplementedInvoiceServiceServer
 	Repo repository.InvoiceRepository
+	MilestoneService   *service.MilestoneRuleService
 	ProfileClient     profilepb.ProfileServiceClient
 	TimeTrackerClient timepb.TimeLogServiceClient
 }
 
-func NewInvoiceHandler(repo repository.InvoiceRepository) *InvoiceHandler {
+func NewInvoiceHandler(repo repository.InvoiceRepository, milestoneSvc *service.MilestoneRuleService) *InvoiceHandler {
 	return &InvoiceHandler{
-		Repo: repo,
+		Repo:             repo,
+		MilestoneService: milestoneSvc,
 	}
 }
 
@@ -37,19 +40,17 @@ func (h *InvoiceHandler) CreateInvoice(ctx context.Context, req *invoicepb.Creat
 	var hoursWorked float64
 	var hourlyRate float64
 
-	// === Handle DueDate from date_to if provided ===
 	if req.GetDateTo() != nil {
 		t := req.GetDateTo().AsTime()
 		dueDate = &t
 	}
 
-	// === Compute amount ===
 	switch req.GetType() {
 	case invoicepb.InvoiceType_FIXED:
 		amount = req.GetFixedAmount()
 
 	case invoicepb.InvoiceType_HOURLY:
-		// Get hourly rate from ProfileService
+		// 1. Get hourly rate from profile
 		profileResp, err := h.ProfileClient.GetProfile(ctx, &profilepb.GetProfileRequest{
 			UserId: req.GetFreelancerId(),
 		})
@@ -58,42 +59,57 @@ func (h *InvoiceHandler) CreateInvoice(ctx context.Context, req *invoicepb.Creat
 		}
 		hourlyRate = float64(profileResp.HourlyRate)
 
-		// Get hours worked from TimeTrackerService
+		// 2. Get total time logs
 		timeResp, err := h.TimeTrackerClient.GetTimeLogsByUser(ctx, &timepb.GetTimeLogsByUserRequest{
-			UserId: req.GetFreelancerId(),
-			ProjectId:    req.GetProjectId(),
-			DateFrom:     req.GetDateFrom(),
-			DateTo:       req.GetDateTo(),
+			UserId:    req.GetFreelancerId(),
+			ProjectId: req.GetProjectId(),
+			DateFrom:  req.GetDateFrom(),
+			DateTo:    req.GetDateTo(),
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to get tracked time: %v", err)
 		}
-	for _, log := range timeResp.Logs {
-		hoursWorked += float64(log.Duration) / 60.0 // assuming Duration is in minutes
-	}
+		for _, log := range timeResp.Logs {
+			hoursWorked += float64(log.Duration) / 60.0
+		}
 
-		// Compute total
 		amount = hourlyRate * hoursWorked
+
+	case invoicepb.InvoiceType_MILESTONE:
+		phase := req.GetMilestonePhase()
+		if phase == "" {
+			return nil, fmt.Errorf("milestone phase is required")
+		}
+
+		existing, err := h.MilestoneService.GetMilestoneByProjectIDAndPhase(projectID, phase)
+		if err == nil && existing != nil {
+			return nil, fmt.Errorf("invoice already exists for this milestone phase")
+		}
+
+		rule, err := h.MilestoneService.GetMilestoneByProjectIDAndPhase(projectID, phase)
+		if err != nil {
+			return nil, fmt.Errorf("milestone rule for phase '%s' not found: %v", phase, err)
+		}
+		amount = rule.Amount
 	}
 
-	// === Create Invoice ===
 	invoice := &model.Invoice{
-		ProjectID:     projectID,
-		ClientID:      clientID,
-		FreelancerID:  freelancerID,
-		Type:          invoiceType,
-		Amount:        amount,
-		DueDate:       dueDate,
-		HoursWorked:   hoursWorked,
-		HourlyRate:    hourlyRate,
-		Status:        "PENDING",
+		ProjectID:      projectID,
+		ClientID:       clientID,
+		FreelancerID:   freelancerID,
+		Type:           invoiceType,
+		Amount:         amount,
+		DueDate:        dueDate,
+		HoursWorked:    hoursWorked,
+		HourlyRate:     hourlyRate,
+		Status:         "PENDING",
+		MilestonePhase: req.GetMilestonePhase(), 
 	}
 
 	if err := h.Repo.CreateInvoice(ctx, invoice); err != nil {
 		return nil, fmt.Errorf("failed to create invoice: %v", err)
 	}
 
-	// === Return Response ===
 	resp := &invoicepb.InvoiceResponse{
 		Invoice: &invoicepb.Invoice{
 			InvoiceId:     invoice.ID.String(),
@@ -106,6 +122,7 @@ func (h *InvoiceHandler) CreateInvoice(ctx context.Context, req *invoicepb.Creat
 			HoursWorked:   invoice.HoursWorked,
 			Status:        invoicepb.InvoiceStatus_PENDING,
 			IssuedAt:      timestamppb.New(invoice.CreatedAt),
+			MilestonePhase: invoice.MilestonePhase,
 		},
 	}
 	if dueDate != nil {
@@ -113,4 +130,3 @@ func (h *InvoiceHandler) CreateInvoice(ctx context.Context, req *invoicepb.Creat
 	}
 	return resp, nil
 }
-

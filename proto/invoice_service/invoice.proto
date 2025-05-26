@@ -26,6 +26,7 @@ enum InvoiceStatus {
 enum InvoiceType {
   FIXED = 0;
   HOURLY = 1;
+  MILESTONE = 2;
 }
 
 // === Messages ===
@@ -34,6 +35,7 @@ message CreateInvoiceRequest {
   string client_id = 2;
   string project_id = 3;
   InvoiceType type = 4;
+  string milestone_phase = 8; 
   double fixed_amount = 5; // only if FIXED
   google.protobuf.Timestamp date_from = 6; // for HOURLY
   google.protobuf.Timestamp date_to = 7;   // for HOURLY
@@ -67,6 +69,7 @@ message Invoice {
   double hourly_rate = 7;
   double hours_worked = 8;
   InvoiceStatus status = 9;
+   string milestone_phase = 14;
   google.protobuf.Timestamp issued_at = 10;
   google.protobuf.Timestamp due_date = 11;
   google.protobuf.Timestamp date_from = 12;
