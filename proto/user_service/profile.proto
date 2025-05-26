@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package profile;
+
+option go_package = "github.com/Prototype-1/freelanceX_invoice.payment_service/proto/user_service;profilepb";
+
+service ProfileService {
+  rpc CreateProfile(CreateProfileRequest) returns (CreateProfileResponse);
+  rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse);
+  rpc GetProfile(GetProfileRequest) returns (GetProfileResponse);
+}
+
+message CreateProfileRequest {
+  string user_id = 1;         
+  string title = 2;           
+  string bio = 3;             
+  float hourly_rate = 4;  
+  int32 years_of_experience = 5; 
+  repeated string skills = 6;  
+  repeated string languages = 7; 
+  repeated string certifications = 8; 
+  string location = 9;         
+  string response_time = 10;  
+}
+
+message CreateProfileResponse {
+  string message = 1;  
+}
+
+message UpdateProfileRequest {
+  string user_id = 1;        
+  string title = 2;            
+  string bio = 3;              
+  float hourly_rate = 4;      
+  int32 years_of_experience = 5; 
+  repeated string skills = 6;  
+  repeated string languages = 7; 
+  repeated string certifications = 8; 
+  string location = 9;         
+  string response_time = 10;   
+}
+
+message UpdateProfileResponse {
+  string message = 1; 
+}
+
+message GetProfileRequest {
+  string user_id = 1; 
+}
+
+message GetProfileResponse {
+  string user_id = 1;        
+  string title = 2;           
+  string bio = 3;            
+  float hourly_rate = 4;    
+  int32 years_of_experience = 5; 
+  repeated string skills = 6; 
+  repeated string languages = 7; 
+  repeated string certifications = 8; 
+  string location = 9;      
+  string response_time = 10;   
+}
