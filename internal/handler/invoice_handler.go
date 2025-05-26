@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"time"
+	"errors"
 	"github.com/Prototype-1/freelanceX_invoice.payment_service/internal/model"
 	"github.com/Prototype-1/freelanceX_invoice.payment_service/internal/service"
 	"github.com/Prototype-1/freelanceX_invoice.payment_service/internal/repository"
@@ -12,9 +13,9 @@ import (
 	timepb "github.com/Prototype-1/freelanceX_invoice.payment_service/proto/timeTracker_service"
 	"github.com/Prototype-1/freelanceX_invoice.payment_service/kafka"
 	"github.com/google/uuid"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
-
 type InvoiceHandler struct {
 	invoicepb.UnimplementedInvoiceServiceServer
 	Repo repository.InvoiceRepository
@@ -38,7 +39,29 @@ func NewInvoiceHandler(
 	}
 }
 
+func extractRole(ctx context.Context) (string, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return "", errors.New("missing metadata")
+	}
+	roles := md.Get("role")
+	if len(roles) == 0 {
+		return "", errors.New("role not found in metadata")
+	}
+	return roles[0], nil
+}
+
 func (h *InvoiceHandler) CreateInvoice(ctx context.Context, req *invoicepb.CreateInvoiceRequest) (*invoicepb.InvoiceResponse, error) {
+
+	role, err := extractRole(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if role != "client" {
+		return nil, errors.New("unauthorized: only clients can create invoice status")
+	}
+
+
 	projectID, _ := uuid.Parse(req.GetProjectId())
 	clientID, _ := uuid.Parse(req.GetClientId())
 	freelancerID, _ := uuid.Parse(req.GetFreelancerId())
@@ -147,4 +170,84 @@ if err := kafka.ProduceInvoiceEvent("localhost:9092", "invoice-events", event); 
 		resp.Invoice.DueDate = timestamppb.New(*dueDate)
 	}
 	return resp, nil
+}
+
+
+func (h *InvoiceHandler) GetInvoice(ctx context.Context, req *invoicepb.GetInvoiceRequest) (*invoicepb.InvoiceResponse, error) {
+	invoice, err := h.Repo.GetInvoiceByID(ctx, req.GetInvoiceId())
+	if err != nil {
+		return nil, err
+	}
+	return &invoicepb.InvoiceResponse{
+		Invoice: model.ToProto(invoice),
+	}, nil
+}
+
+func (h *InvoiceHandler) GetInvoicesByUser(ctx context.Context, req *invoicepb.GetInvoicesByUserRequest) (*invoicepb.InvoicesResponse, error) {
+	role, err := extractRole(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if role != req.GetRole() {
+		return nil, errors.New("unauthorized: role mismatch")
+	}
+
+	filter := &repository.InvoiceFilter{}
+	if role == "freelancer" {
+	id := req.GetUserId()
+filter.FreelancerID = &id
+	} else if role == "client" {
+		id := req.GetUserId()
+filter.ClientID = &id
+	} else {
+		return nil, errors.New("invalid role")
+	}
+
+	invoices, err := h.Repo.ListInvoices(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	var protoInvoices []*invoicepb.Invoice
+	for _, inv := range invoices {
+		protoInvoices = append(protoInvoices, model.ToProto(inv))
+	}
+	return &invoicepb.InvoicesResponse{Invoices: protoInvoices}, nil
+}
+
+func (h *InvoiceHandler) GetInvoicesByProject(ctx context.Context, req *invoicepb.GetInvoicesByProjectRequest) (*invoicepb.InvoicesResponse, error) {
+id := req.GetProjectId()
+filter := &repository.InvoiceFilter{ProjectID: &id}
+	invoices, err := h.Repo.ListInvoices(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	var protoInvoices []*invoicepb.Invoice
+	for _, inv := range invoices {
+		protoInvoices = append(protoInvoices, model.ToProto(inv))
+	}
+	return &invoicepb.InvoicesResponse{Invoices: protoInvoices}, nil
+}
+
+func (h *InvoiceHandler) UpdateInvoiceStatus(ctx context.Context, req *invoicepb.UpdateInvoiceStatusRequest) (*invoicepb.InvoiceResponse, error) {
+	role, err := extractRole(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if role != "client" {
+		return nil, errors.New("unauthorized: only clients can update invoice status")
+	}
+
+	statusStr := req.GetStatus().String()
+	err = h.Repo.UpdateStatus(ctx, req.GetInvoiceId(), statusStr)
+	if err != nil {
+		return nil, err
+	}
+
+	invoice, err := h.Repo.GetInvoiceByID(ctx, req.GetInvoiceId())
+	if err != nil {
+		return nil, err
+	}
+	return &invoicepb.InvoiceResponse{
+		Invoice: model.ToProto(invoice),
+	}, nil
 }

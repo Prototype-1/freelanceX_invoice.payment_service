@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package invoicepb;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/Prototype-1/freelanceX_invoice.payment_service/proto/milestone;milestonepb";
+
+message MilestoneRule {
+  string id = 1;
+  string project_id = 2;
+  string phase = 3;
+  double amount = 4;
+  google.protobuf.Timestamp due_date = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+message CreateMilestoneRuleRequest {
+  string project_id = 1;
+  string phase = 2;
+  double amount = 3;
+  google.protobuf.Timestamp due_date = 4;
+}
+
+message UpdateMilestoneRuleRequest {
+  string id = 1;
+  string phase = 2;
+  double amount = 3;
+  google.protobuf.Timestamp due_date = 4;
+}
+
+message GetMilestonesByProjectIDRequest {
+  string project_id = 1;
+}
+
+message GetMilestonesByProjectIDResponse {
+  repeated MilestoneRule milestones = 1;
+}
+
+message GetMilestoneByProjectIDAndPhaseRequest {
+  string project_id = 1;
+  string phase = 2;
+}
+
+message GetMilestoneByProjectIDAndPhaseResponse {
+  MilestoneRule milestone = 1;
+}
+
+service MilestoneRuleService {
+  rpc CreateMilestoneRule(CreateMilestoneRuleRequest) returns (MilestoneRule);
+  rpc UpdateMilestoneRule(UpdateMilestoneRuleRequest) returns (MilestoneRule);
+  rpc GetMilestonesByProjectID(GetMilestonesByProjectIDRequest) returns (GetMilestonesByProjectIDResponse);
+  rpc GetMilestoneByProjectIDAndPhase(GetMilestoneByProjectIDAndPhaseRequest) returns (GetMilestoneByProjectIDAndPhaseResponse);
+}
