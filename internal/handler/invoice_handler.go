@@ -59,7 +59,6 @@ func (h *InvoiceHandler) CreateInvoice(ctx context.Context, req *invoicepb.Creat
 		}
 		hourlyRate = float64(profileResp.HourlyRate)
 
-		// 2. Get total time logs
 		timeResp, err := h.TimeTrackerClient.GetTimeLogsByUser(ctx, &timepb.GetTimeLogsByUserRequest{
 			UserId:    req.GetFreelancerId(),
 			ProjectId: req.GetProjectId(),
