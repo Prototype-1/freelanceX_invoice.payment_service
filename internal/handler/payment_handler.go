@@ -6,19 +6,22 @@ import (
 "google.golang.org/grpc/status"	
 "google.golang.org/grpc/codes"
 "github.com/Prototype-1/freelanceX_invoice.payment_service/internal/service"
-pb "github.com/Prototype-1/freelanceX_invoice.payment_service/proto/payment"
+paymentpb "github.com/Prototype-1/freelanceX_invoice.payment_service/proto/payment"
 )
 
 type PaymentServiceServer struct {
-	pb.UnimplementedPaymentServiceServer
-	usecase service.PaymentService
+	paymentpb.UnimplementedPaymentServiceServer
+	service service.PaymentService
 }
 
 func NewPaymentServiceServer(u service.PaymentService) *PaymentServiceServer {
-	return &PaymentServiceServer{usecase: u}
+	return &PaymentServiceServer{service: u}
 }
 
-func (s *PaymentServiceServer) SimulatePayment(ctx context.Context, req *pb.SimulatePaymentRequest) (*pb.SimulatePaymentResponse, error) {
+func (s *PaymentServiceServer) CreatePaymentOrder(
+	ctx context.Context,
+	req *paymentpb.CreatePaymentOrderRequest,
+) (*paymentpb.CreatePaymentOrderResponse, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "missing metadata")
@@ -29,8 +32,7 @@ func (s *PaymentServiceServer) SimulatePayment(ctx context.Context, req *pb.Simu
 		return nil, status.Error(codes.PermissionDenied, "only clients can initiate payment")
 	}
 
-
-	payment, err := s.usecase.ProcessSimulatedPayment(
+	payment, order, err := s.service.CreatePaymentOrder(
 		ctx,
 		req.InvoiceId,
 		req.MilestoneId,
@@ -42,12 +44,11 @@ func (s *PaymentServiceServer) SimulatePayment(ctx context.Context, req *pb.Simu
 		return nil, err
 	}
 
-	return &pb.SimulatePaymentResponse{
-		PaymentId:      payment.ID.String(),
-		AmountPaid:     payment.AmountPaid,
-		PlatformFee:    payment.PlatformFee,
-		AmountCredited: payment.AmountCredited,
-		Status:         payment.Status,
-		RazorpayOrderId: payment.OrderID, 
+	return &paymentpb.CreatePaymentOrderResponse{
+		PaymentId:       payment.ID.String(),
+		RazorpayOrderId: order.ID,
+		Amount:          req.Amount,
+		Currency:        "INR", // or order.Currency
+		InvoiceId:       req.InvoiceId,
 	}, nil
 }

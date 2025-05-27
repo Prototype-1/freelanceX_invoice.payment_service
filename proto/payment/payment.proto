@@ -5,22 +5,21 @@ package paymentpb;
 option go_package = "freelanceX_invoice.payment_service/proto/payment;paymentpb";
 
 service PaymentService {
-  rpc SimulatePayment(SimulatePaymentRequest) returns (SimulatePaymentResponse);
+  rpc CreatePaymentOrder(CreatePaymentOrderRequest) returns (CreatePaymentOrderResponse);
 }
 
-message SimulatePaymentRequest {
+message CreatePaymentOrderRequest {
   string invoice_id = 1;
-  string milestone_id = 2; 
-  string payer_id = 3;    
+  string milestone_id = 2;
+  string payer_id = 3;
   string receiver_id = 4;
-  double amount = 5;     
+  double amount = 5;
 }
 
-message SimulatePaymentResponse {
+message CreatePaymentOrderResponse {
   string payment_id = 1;
-  double amount_paid = 2;
-  double platform_fee = 3;
-  double amount_credited = 4;
-  string status = 5; 
-    string razorpay_order_id = 6;
+  string razorpay_order_id = 2;
+  double amount = 3;
+  string currency = 4;
+  string invoice_id = 5;
 }

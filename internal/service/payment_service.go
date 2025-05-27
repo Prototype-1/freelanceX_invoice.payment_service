@@ -10,7 +10,11 @@ import (
 )
 
 type PaymentService interface {
-	ProcessSimulatedPayment(ctx context.Context, invoiceID, milestoneID, payerID, receiverID string, amount float64) (*model.Payment, error)
+	CreatePaymentOrder(
+	ctx context.Context,
+	invoiceID, milestoneID, payerID, receiverID string,
+	amount float64,
+) (*model.Payment, *pkg.CreateOrderResponse, error)
 }
 
 type paymentService struct {
@@ -19,28 +23,20 @@ type paymentService struct {
 	milestoneRepo repository.MilestoneRuleRepository
 }
 
-func NewPaymentUsecase(pR repository.PaymentRepository, iR repository.InvoiceRepository, mR repository.MilestoneRuleRepository) PaymentService {
-	return &paymentService{
-		paymentRepo:  pR,
-		invoiceRepo:  iR,
-		milestoneRepo: mR,
-	}
-}
-
-func (u *paymentService) ProcessSimulatedPayment(ctx context.Context, invoiceID, milestoneID, payerID, receiverID string, amount float64) (*model.Payment, error) {
-	const platformFeePercentage = 0.10
+func (u *paymentService) CreatePaymentOrder(
+	ctx context.Context,
+	invoiceID, milestoneID, payerID, receiverID string,
+	amount float64,
+) (*model.Payment, *pkg.CreateOrderResponse, error) {
 
 	invoiceUUID := uuid.MustParse(invoiceID)
 	payerUUID := uuid.MustParse(payerID)
 	receiverUUID := uuid.MustParse(receiverID)
 
-	platformFee := amount * platformFeePercentage
-	amountCredited := amount - platformFee
-
 	rzClient := pkg.NewRazorpayClient()
 	order, err := rzClient.CreateOrder(amount, "receipt_"+invoiceID)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	payment := &model.Payment{
@@ -49,9 +45,7 @@ func (u *paymentService) ProcessSimulatedPayment(ctx context.Context, invoiceID,
 		PayerID:        payerUUID,
 		ReceiverID:     receiverUUID,
 		AmountPaid:     amount,
-		PlatformFee:    platformFee,
-		AmountCredited: amountCredited,
-		Status:         "completed",
+		Status:         "pending",
 		OrderID:        order.ID,
 		CreatedAt:      time.Now(),
 		UpdatedAt:      time.Now(),
@@ -64,13 +58,20 @@ func (u *paymentService) ProcessSimulatedPayment(ctx context.Context, invoiceID,
 
 	err = u.paymentRepo.Create(ctx, payment)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	err = u.invoiceRepo.MarkPaid(ctx, invoiceUUID)
-	if err != nil {
-		return nil, err
-	}
+	return payment, order, nil
+}
 
-	return payment, nil
+func NewPaymentService(
+	paymentRepo repository.PaymentRepository,
+	invoiceRepo repository.InvoiceRepository,
+	milestoneRepo repository.MilestoneRuleRepository,
+) PaymentService {
+	return &paymentService{
+		paymentRepo:   paymentRepo,
+		invoiceRepo:   invoiceRepo,
+		milestoneRepo: milestoneRepo,
+	}
 }

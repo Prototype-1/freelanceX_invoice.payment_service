@@ -19,14 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PaymentService_SimulatePayment_FullMethodName = "/paymentpb.PaymentService/SimulatePayment"
+	PaymentService_CreatePaymentOrder_FullMethodName = "/paymentpb.PaymentService/CreatePaymentOrder"
 )
 
 // PaymentServiceClient is the client API for PaymentService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PaymentServiceClient interface {
-	SimulatePayment(ctx context.Context, in *SimulatePaymentRequest, opts ...grpc.CallOption) (*SimulatePaymentResponse, error)
+	CreatePaymentOrder(ctx context.Context, in *CreatePaymentOrderRequest, opts ...grpc.CallOption) (*CreatePaymentOrderResponse, error)
 }
 
 type paymentServiceClient struct {
@@ -37,10 +37,10 @@ func NewPaymentServiceClient(cc grpc.ClientConnInterface) PaymentServiceClient {
 	return &paymentServiceClient{cc}
 }
 
-func (c *paymentServiceClient) SimulatePayment(ctx context.Context, in *SimulatePaymentRequest, opts ...grpc.CallOption) (*SimulatePaymentResponse, error) {
+func (c *paymentServiceClient) CreatePaymentOrder(ctx context.Context, in *CreatePaymentOrderRequest, opts ...grpc.CallOption) (*CreatePaymentOrderResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SimulatePaymentResponse)
-	err := c.cc.Invoke(ctx, PaymentService_SimulatePayment_FullMethodName, in, out, cOpts...)
+	out := new(CreatePaymentOrderResponse)
+	err := c.cc.Invoke(ctx, PaymentService_CreatePaymentOrder_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (c *paymentServiceClient) SimulatePayment(ctx context.Context, in *Simulate
 // All implementations must embed UnimplementedPaymentServiceServer
 // for forward compatibility.
 type PaymentServiceServer interface {
-	SimulatePayment(context.Context, *SimulatePaymentRequest) (*SimulatePaymentResponse, error)
+	CreatePaymentOrder(context.Context, *CreatePaymentOrderRequest) (*CreatePaymentOrderResponse, error)
 	mustEmbedUnimplementedPaymentServiceServer()
 }
 
@@ -62,8 +62,8 @@ type PaymentServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedPaymentServiceServer struct{}
 
-func (UnimplementedPaymentServiceServer) SimulatePayment(context.Context, *SimulatePaymentRequest) (*SimulatePaymentResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SimulatePayment not implemented")
+func (UnimplementedPaymentServiceServer) CreatePaymentOrder(context.Context, *CreatePaymentOrderRequest) (*CreatePaymentOrderResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePaymentOrder not implemented")
 }
 func (UnimplementedPaymentServiceServer) mustEmbedUnimplementedPaymentServiceServer() {}
 func (UnimplementedPaymentServiceServer) testEmbeddedByValue()                        {}
@@ -86,20 +86,20 @@ func RegisterPaymentServiceServer(s grpc.ServiceRegistrar, srv PaymentServiceSer
 	s.RegisterService(&PaymentService_ServiceDesc, srv)
 }
 
-func _PaymentService_SimulatePayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SimulatePaymentRequest)
+func _PaymentService_CreatePaymentOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePaymentOrderRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PaymentServiceServer).SimulatePayment(ctx, in)
+		return srv.(PaymentServiceServer).CreatePaymentOrder(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: PaymentService_SimulatePayment_FullMethodName,
+		FullMethod: PaymentService_CreatePaymentOrder_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PaymentServiceServer).SimulatePayment(ctx, req.(*SimulatePaymentRequest))
+		return srv.(PaymentServiceServer).CreatePaymentOrder(ctx, req.(*CreatePaymentOrderRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -112,8 +112,8 @@ var PaymentService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*PaymentServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "SimulatePayment",
-			Handler:    _PaymentService_SimulatePayment_Handler,
+			MethodName: "CreatePaymentOrder",
+			Handler:    _PaymentService_CreatePaymentOrder_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

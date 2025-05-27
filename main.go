@@ -15,6 +15,7 @@ import (
 	client "github.com/Prototype-1/freelanceX_invoice.payment_service/client"
 	invoicepb "github.com/Prototype-1/freelanceX_invoice.payment_service/proto/invoice_service"
 	milestonePb "github.com/Prototype-1/freelanceX_invoice.payment_service/proto/milestone"
+	paymentPb "github.com/Prototype-1/freelanceX_invoice.payment_service/proto/payment"
 	"google.golang.org/grpc"
 )
 
@@ -38,6 +39,9 @@ func main() {
 	milestoneRepo := repository.NewMilestoneRuleRepository(dbConn)
 milestoneService := service.NewMilestoneRuleService(milestoneRepo)
 
+	paymentRepo := repository.NewPaymentRepository(dbConn)
+	paymentService := service.NewPaymentService(paymentRepo, invoiceRepo, milestoneRepo)
+
 
 	invoiceHandler := &handler.InvoiceHandler{
 		Repo:             invoiceRepo,
@@ -55,6 +59,8 @@ milestoneService := service.NewMilestoneRuleService(milestoneRepo)
 	invoicepb.RegisterInvoiceServiceServer(grpcServer, invoiceHandler)
 	milestoneRuleHandler := handler.NewMilestoneRuleHandler(milestoneService)
 milestonePb.RegisterMilestoneRuleServiceServer(grpcServer, milestoneRuleHandler)
+paymentHandler := handler.NewPaymentServiceServer(paymentService)
+paymentPb.RegisterPaymentServiceServer(grpcServer, paymentHandler)
 
 	go func() {
 		log.Printf("Starting gRPC server on port %s...", cfg.Port)
