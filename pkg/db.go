@@ -29,6 +29,7 @@ func AutoMigrate() error {
 	err := DB.AutoMigrate(
 		&model.Invoice{},
 		&model.MilestoneRule{},	
+		&model.Payment{},
 	)
 	if err != nil {
 		log.Printf("AutoMigrate error: %v", err)
