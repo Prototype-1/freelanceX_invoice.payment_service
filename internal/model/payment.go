@@ -10,6 +10,7 @@ type Payment struct {
 	InvoiceID      uuid.UUID  `gorm:"type:uuid;not null"`
 	MilestoneID    *uuid.UUID `gorm:"type:uuid"` 
 	PayerID        uuid.UUID  `gorm:"type:uuid;not null"` 
+	OrderID string `gorm:"type:varchar(100)"`
 	ReceiverID     uuid.UUID  `gorm:"type:uuid;not null"`
 	AmountPaid     float64    `gorm:"type:numeric;not null"`
 	PlatformFee    float64    `gorm:"type:numeric;not null"`

@@ -5,6 +5,7 @@ import (
 	"time"
 	"github.com/google/uuid"
 	"github.com/Prototype-1/freelanceX_invoice.payment_service/internal/model"
+	"github.com/Prototype-1/freelanceX_invoice.payment_service/pkg"
 	"github.com/Prototype-1/freelanceX_invoice.payment_service/internal/repository"
 )
 
@@ -12,21 +13,21 @@ type PaymentService interface {
 	ProcessSimulatedPayment(ctx context.Context, invoiceID, milestoneID, payerID, receiverID string, amount float64) (*model.Payment, error)
 }
 
-type paymentUsecase struct {
+type paymentService struct {
 	paymentRepo repository.PaymentRepository
 	invoiceRepo repository.InvoiceRepository
 	milestoneRepo repository.MilestoneRuleRepository
 }
 
 func NewPaymentUsecase(pR repository.PaymentRepository, iR repository.InvoiceRepository, mR repository.MilestoneRuleRepository) PaymentService {
-	return &paymentUsecase{
+	return &paymentService{
 		paymentRepo:  pR,
 		invoiceRepo:  iR,
 		milestoneRepo: mR,
 	}
 }
 
-func (u *paymentUsecase) ProcessSimulatedPayment(ctx context.Context, invoiceID, milestoneID, payerID, receiverID string, amount float64) (*model.Payment, error) {
+func (u *paymentService) ProcessSimulatedPayment(ctx context.Context, invoiceID, milestoneID, payerID, receiverID string, amount float64) (*model.Payment, error) {
 	const platformFeePercentage = 0.10
 
 	invoiceUUID := uuid.MustParse(invoiceID)
@@ -35,6 +36,12 @@ func (u *paymentUsecase) ProcessSimulatedPayment(ctx context.Context, invoiceID,
 
 	platformFee := amount * platformFeePercentage
 	amountCredited := amount - platformFee
+
+	rzClient := pkg.NewRazorpayClient()
+	order, err := rzClient.CreateOrder(amount, "receipt_"+invoiceID)
+	if err != nil {
+		return nil, err
+	}
 
 	payment := &model.Payment{
 		ID:             uuid.New(),
@@ -45,6 +52,7 @@ func (u *paymentUsecase) ProcessSimulatedPayment(ctx context.Context, invoiceID,
 		PlatformFee:    platformFee,
 		AmountCredited: amountCredited,
 		Status:         "completed",
+		OrderID:        order.ID,
 		CreatedAt:      time.Now(),
 		UpdatedAt:      time.Now(),
 	}
@@ -54,7 +62,7 @@ func (u *paymentUsecase) ProcessSimulatedPayment(ctx context.Context, invoiceID,
 		payment.MilestoneID = &mid
 	}
 
-	err := u.paymentRepo.Create(ctx, payment)
+	err = u.paymentRepo.Create(ctx, payment)
 	if err != nil {
 		return nil, err
 	}
