@@ -48,7 +48,28 @@ func (s *PaymentServiceServer) CreatePaymentOrder(
 		PaymentId:       payment.ID.String(),
 		RazorpayOrderId: order.ID,
 		Amount:          req.Amount,
-		Currency:        "INR", // or order.Currency
+		Currency:        "INR", 
 		InvoiceId:       req.InvoiceId,
+	}, nil
+}
+
+func (s *PaymentServiceServer) VerifyPayment(
+	ctx context.Context,
+	req *paymentpb.VerifyPaymentRequest,
+) (*paymentpb.VerifyPaymentResponse, error) {
+	valid, msg, err := s.service.VerifyPayment(
+		ctx,
+		req.RazorpayPaymentId,
+		req.RazorpayOrderId,
+		req.RazorpaySignature,
+		req.InvoiceId,
+	)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "verification failed: %v", err)
+	}
+
+	return &paymentpb.VerifyPaymentResponse{
+		Valid:   valid,
+		Message: msg,
 	}, nil
 }

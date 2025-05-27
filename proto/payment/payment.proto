@@ -6,6 +6,7 @@ option go_package = "freelanceX_invoice.payment_service/proto/payment;paymentpb"
 
 service PaymentService {
   rpc CreatePaymentOrder(CreatePaymentOrderRequest) returns (CreatePaymentOrderResponse);
+  rpc VerifyPayment(VerifyPaymentRequest) returns (VerifyPaymentResponse);
 }
 
 message CreatePaymentOrderRequest {
@@ -22,4 +23,16 @@ message CreatePaymentOrderResponse {
   double amount = 3;
   string currency = 4;
   string invoice_id = 5;
+}
+
+message VerifyPaymentRequest {
+  string razorpay_payment_id = 1;
+  string razorpay_order_id = 2;
+  string razorpay_signature = 3;
+  string invoice_id = 4;
+}
+
+message VerifyPaymentResponse {
+  bool valid = 1;
+  string message = 2;
 }

@@ -1,6 +1,10 @@
 package service
 
 import (
+	"os"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"context"
 	"time"
 	"github.com/google/uuid"
@@ -15,6 +19,7 @@ type PaymentService interface {
 	invoiceID, milestoneID, payerID, receiverID string,
 	amount float64,
 ) (*model.Payment, *pkg.CreateOrderResponse, error)
+VerifyPayment(ctx context.Context, razorpayPaymentID, razorpayOrderID, razorpaySignature, invoiceID string) (bool, string, error)
 }
 
 type paymentService struct {
@@ -74,4 +79,28 @@ func NewPaymentService(
 		invoiceRepo:   invoiceRepo,
 		milestoneRepo: milestoneRepo,
 	}
+}
+
+func (u *paymentService) VerifyPayment(
+	ctx context.Context,
+	razorpayPaymentID, razorpayOrderID, razorpaySignature, invoiceID string,
+) (bool, string, error) {
+	secret := os.Getenv("RAZORPAY_SECRET")
+
+	data := razorpayOrderID + "|" + razorpayPaymentID
+	h := hmac.New(sha256.New, []byte(secret))
+	h.Write([]byte(data))
+	expectedSignature := hex.EncodeToString(h.Sum(nil))
+
+	if expectedSignature != razorpaySignature {
+		return false, "Invalid signature", nil
+	}
+
+	invoiceUUID := uuid.MustParse(invoiceID)
+
+	if err := u.invoiceRepo.MarkPaid(ctx, invoiceUUID); err != nil {
+		return false, "Signature valid but DB update failed", err
+	}
+
+	return true, "Payment verified and invoice marked paid", nil
 }
