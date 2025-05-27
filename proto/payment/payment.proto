@@ -22,4 +22,5 @@ message SimulatePaymentResponse {
   double platform_fee = 3;
   double amount_credited = 4;
   string status = 5; 
+    string razorpay_order_id = 6;
 }

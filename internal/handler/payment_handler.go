@@ -3,8 +3,8 @@ package handler
 import (
 "context"
 "google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
-	"google.golang.org/grpc/codes"
+"google.golang.org/grpc/status"	
+"google.golang.org/grpc/codes"
 "github.com/Prototype-1/freelanceX_invoice.payment_service/internal/service"
 pb "github.com/Prototype-1/freelanceX_invoice.payment_service/proto/payment"
 )
@@ -29,7 +29,7 @@ func (s *PaymentServiceServer) SimulatePayment(ctx context.Context, req *pb.Simu
 		return nil, status.Error(codes.PermissionDenied, "only clients can initiate payment")
 	}
 
-	
+
 	payment, err := s.usecase.ProcessSimulatedPayment(
 		ctx,
 		req.InvoiceId,
@@ -48,5 +48,6 @@ func (s *PaymentServiceServer) SimulatePayment(ctx context.Context, req *pb.Simu
 		PlatformFee:    payment.PlatformFee,
 		AmountCredited: payment.AmountCredited,
 		Status:         payment.Status,
+		RazorpayOrderId: payment.OrderID, 
 	}, nil
 }
