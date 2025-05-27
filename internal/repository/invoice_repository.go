@@ -13,6 +13,7 @@ type InvoiceRepository interface {
 	UpdateStatus(ctx context.Context, id string, status string) error
 	ListInvoices(ctx context.Context, filter *InvoiceFilter) ([]*model.Invoice, error)
 	FindInvoiceByProjectAndPhase(ctx context.Context, projectID uuid.UUID, phase string) (*model.Invoice, error)
+	MarkPaid(ctx context.Context, invoiceID uuid.UUID) error
 }
 
 type InvoiceFilter struct {
@@ -84,4 +85,10 @@ func (r *invoiceRepo) FindInvoiceByProjectAndPhase(ctx context.Context, projectI
 		return nil, err
 	}
 	return &invoice, nil
+}
+
+func (r *invoiceRepo) MarkPaid(ctx context.Context, invoiceID uuid.UUID) error {
+	return r.db.WithContext(ctx).Model(&model.Invoice{}).
+		Where("id = ?", invoiceID).
+		Update("status", "paid").Error
 }

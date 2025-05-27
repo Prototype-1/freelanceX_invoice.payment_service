@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package paymentpb;
+
+option go_package = "freelanceX_invoice.payment_service/proto/payment;paymentpb";
+
+service PaymentService {
+  rpc SimulatePayment(SimulatePaymentRequest) returns (SimulatePaymentResponse);
+}
+
+message SimulatePaymentRequest {
+  string invoice_id = 1;
+  string milestone_id = 2; 
+  string payer_id = 3;    
+  string receiver_id = 4;
+  double amount = 5;     
+}
+
+message SimulatePaymentResponse {
+  string payment_id = 1;
+  double amount_paid = 2;
+  double platform_fee = 3;
+  double amount_credited = 4;
+  string status = 5; 
+}
