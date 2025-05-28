@@ -37,7 +37,7 @@ func main() {
 	timeTrackerClient := client.NewTimeServiceClient()
 
 	milestoneRepo := repository.NewMilestoneRuleRepository(dbConn)
-milestoneService := service.NewMilestoneRuleService(milestoneRepo)
+	milestoneService := service.NewMilestoneRuleService(milestoneRepo)
 
 	paymentRepo := repository.NewPaymentRepository(dbConn)
 	paymentService := service.NewPaymentService(paymentRepo, invoiceRepo, milestoneRepo)
@@ -58,9 +58,9 @@ milestoneService := service.NewMilestoneRuleService(milestoneRepo)
 
 	invoicepb.RegisterInvoiceServiceServer(grpcServer, invoiceHandler)
 	milestoneRuleHandler := handler.NewMilestoneRuleHandler(milestoneService)
-milestonePb.RegisterMilestoneRuleServiceServer(grpcServer, milestoneRuleHandler)
-paymentHandler := handler.NewPaymentServiceServer(paymentService)
-paymentPb.RegisterPaymentServiceServer(grpcServer, paymentHandler)
+	milestonePb.RegisterMilestoneRuleServiceServer(grpcServer, milestoneRuleHandler)
+	paymentHandler := handler.NewPaymentServiceServer(paymentService)
+	paymentPb.RegisterPaymentServiceServer(grpcServer, paymentHandler)
 
 	go func() {
 		log.Printf("Starting gRPC server on port %s...", cfg.Port)
