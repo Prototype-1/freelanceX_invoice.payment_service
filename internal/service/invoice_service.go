@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/Prototype-1/freelanceX_invoice.payment_service/internal/model"
 	"github.com/Prototype-1/freelanceX_invoice.payment_service/internal/repository"
+	"github.com/Prototype-1/freelanceX_invoice.payment_service/pkg"
 )
 
 type InvoiceUsecase interface {
@@ -11,6 +12,7 @@ type InvoiceUsecase interface {
 	GetInvoiceByID(ctx context.Context, id string) (*model.Invoice, error)
 	UpdateStatus(ctx context.Context, id string, status string) error
 	ListInvoices(ctx context.Context, filter *repository.InvoiceFilter) ([]*model.Invoice, error)
+	GetInvoicePDF(ctx context.Context, invoiceID string) ([]byte, error) 
 }
 
 type invoiceService struct {
@@ -37,3 +39,20 @@ func (s *invoiceService) ListInvoices(ctx context.Context, filter *repository.In
 	return s.repo.ListInvoices(ctx, filter)
 }
 
+func (s *invoiceService) GetInvoicePDF(ctx context.Context, invoiceID string) ([]byte, error) {
+	invoice, err := s.repo.GetInvoiceByID(ctx, invoiceID)
+	if err != nil {
+		return nil, err
+	}
+
+	pdfBytes, err := s.generateInvoicePDF(invoice)
+	if err != nil {
+		return nil, err
+	}
+
+	return pdfBytes, nil
+}
+
+func (s *invoiceService) generateInvoicePDF(inv *model.Invoice) ([]byte, error) {
+	return pkg.GenerateInvoicePDF(inv)
+}

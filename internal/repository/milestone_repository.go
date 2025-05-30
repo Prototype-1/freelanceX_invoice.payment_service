@@ -10,6 +10,7 @@ import (
 type MilestoneRuleRepository interface {
 	Create(rule *model.MilestoneRule) error
 	Update(rule *model.MilestoneRule) error
+	GetByID(id uuid.UUID) (*model.MilestoneRule, error)
 	GetByProjectID(projectID uuid.UUID) ([]model.MilestoneRule, error)
 	GetByProjectIDAndPhase(projectID uuid.UUID, phase string) (*model.MilestoneRule, error)
 }
@@ -46,3 +47,10 @@ func (r *milestoneRuleRepo) GetByProjectIDAndPhase(projectID uuid.UUID, phase st
 	return &rule, nil
 }
 
+func (r *milestoneRuleRepo) GetByID(id uuid.UUID) (*model.MilestoneRule, error) {
+	var rule model.MilestoneRule
+	if err := r.db.First(&rule, "id = ?", id).Error; err != nil {
+		return nil, err
+	}
+	return &rule, nil
+}

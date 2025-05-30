@@ -26,7 +26,17 @@ func (s *MilestoneRuleService) UpdateMilestoneRule(rule *model.MilestoneRule) er
 	if rule.Amount < 0 {
 		return errors.New("milestone amount must be non-negative")
 	}
-	return s.repo.Update(rule)
+existing, err := s.repo.GetByID(rule.ID)
+	if err != nil {
+		return err
+	}
+	existing.Phase = rule.Phase
+	existing.Amount = rule.Amount
+	if rule.DueDate != nil {
+		existing.DueDate = rule.DueDate
+	}
+
+	return s.repo.Update(existing)
 }
 
 func (s *MilestoneRuleService) GetMilestonesByProjectID(projectID uuid.UUID) ([]model.MilestoneRule, error) {

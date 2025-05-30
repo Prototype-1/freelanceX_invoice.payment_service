@@ -39,7 +39,8 @@ func (u *paymentService) CreatePaymentOrder(
 	receiverUUID := uuid.MustParse(receiverID)
 
 	rzClient := pkg.NewRazorpayClient()
-	order, err := rzClient.CreateOrder(amount, "receipt_"+invoiceID)
+	receipt := "rcpt_" + invoiceID[:8]
+	order, err := rzClient.CreateOrder(amount, receipt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -85,7 +86,7 @@ func (u *paymentService) VerifyPayment(
 	ctx context.Context,
 	razorpayPaymentID, razorpayOrderID, razorpaySignature, invoiceID string,
 ) (bool, string, error) {
-	secret := os.Getenv("RAZORPAY_SECRET")
+	secret := os.Getenv("RAZORPAY_KEY_SECRET")
 
 	data := razorpayOrderID + "|" + razorpayPaymentID
 	h := hmac.New(sha256.New, []byte(secret))
@@ -100,6 +101,10 @@ func (u *paymentService) VerifyPayment(
 
 	if err := u.invoiceRepo.MarkPaid(ctx, invoiceUUID); err != nil {
 		return false, "Signature valid but DB update failed", err
+	}
+
+	if err := u.paymentRepo.MarkPaid(ctx, invoiceUUID); err != nil {
+		return false, "Invoice marked but payment DB update failed", err
 	}
 
 	return true, "Payment verified and invoice marked paid", nil

@@ -13,6 +13,8 @@ type Config struct {
 	DBPassword  string
 	DBName      string
 	Port        string
+	KafkaBroker        string
+	InvoiceKafkaTopic  string
 }
 
 var AppConfig Config
@@ -30,6 +32,8 @@ func LoadConfig() {
 		DBPassword:  getEnv("DB_PASSWORD", "password"),
 		DBName:      getEnv("DB_NAME", "freelanceX_invoice_service"),
 		Port:        getEnv("PORT", "50051"),
+		KafkaBroker:        getEnv("KAFKA_BROKER", "localhost:9092"),
+		InvoiceKafkaTopic:  getEnv("INVOICE_KAFKA_TOPIC", "invoice-events"),
 	}
 }
 

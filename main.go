@@ -43,11 +43,18 @@ func main() {
 	paymentService := service.NewPaymentService(paymentRepo, invoiceRepo, milestoneRepo)
 
 
-	invoiceHandler := &handler.InvoiceHandler{
-		Repo:             invoiceRepo,
-		ProfileClient:    profileClient,
-		TimeTrackerClient: timeTrackerClient,
-	}
+invoiceService := service.NewInvoiceService(invoiceRepo)
+
+invoiceHandler := handler.NewInvoiceHandler(
+	invoiceRepo,
+	invoiceService,
+	milestoneService,
+	cfg.KafkaBroker,
+	cfg.InvoiceKafkaTopic, 
+)
+
+invoiceHandler.ProfileClient = profileClient
+invoiceHandler.TimeTrackerClient = timeTrackerClient
 
 	listener, err := net.Listen("tcp", ":"+cfg.Port)
 	if err != nil {

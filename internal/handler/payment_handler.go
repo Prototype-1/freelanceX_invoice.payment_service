@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 "context"
 "google.golang.org/grpc/metadata"
 "google.golang.org/grpc/status"	
@@ -22,15 +23,21 @@ func (s *PaymentServiceServer) CreatePaymentOrder(
 	ctx context.Context,
 	req *paymentpb.CreatePaymentOrderRequest,
 ) (*paymentpb.CreatePaymentOrderResponse, error) {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return nil, status.Error(codes.Unauthenticated, "missing metadata")
-	}
+	log.Println("CreatePaymentOrder called") 
 
-	roles := md.Get("role")
-	if len(roles) == 0 || roles[0] != "client" {
-		return nil, status.Error(codes.PermissionDenied, "only clients can initiate payment")
-	}
+md, ok := metadata.FromIncomingContext(ctx)
+log.Printf("metadata ok: %v, md: %+v\n", ok, md)
+
+if !ok {
+	return nil, status.Error(codes.Unauthenticated, "missing metadata")
+}
+
+roles := md.Get("role")
+log.Printf("Roles: %+v\n", roles)
+
+if len(roles) == 0 || roles[0] != "client" {
+	return nil, status.Error(codes.PermissionDenied, "only clients can initiate payment")
+}
 
 	payment, order, err := s.service.CreatePaymentOrder(
 		ctx,
