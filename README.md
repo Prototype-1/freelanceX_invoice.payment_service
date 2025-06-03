@@ -1,7 +1,7 @@
 # Invoice & Payment Service — FreelanceX
 
 ## Overview
-[Add overview here: responsible for generating invoices for completed projects, tracking payments, and managing transaction history between clients and freelancers.]
+Responsible for generating invoices for completed projects, tracking payments, and managing transaction history between clients and freelancers using kafka event into messaging service.
 
 ## Tech Stack
 - Go (Golang)
