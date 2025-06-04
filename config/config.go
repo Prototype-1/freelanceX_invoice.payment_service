@@ -26,13 +26,13 @@ func LoadConfig() {
 	}
 
 	AppConfig = Config{
-		DBHost:      getEnv("DB_HOST", "localhost"),
+		DBHost:      getEnv("DB_HOST", "postgres"),
 		DBPort:      getEnv("DB_PORT", "5432"),
 		DBUser:      getEnv("DB_USER", "postgres"),
 		DBPassword:  getEnv("DB_PASSWORD", "password"),
 		DBName:      getEnv("DB_NAME", "freelanceX_invoice_service"),
 		Port:        getEnv("PORT", "50051"),
-		KafkaBroker:        getEnv("KAFKA_BROKER", "localhost:9092"),
+		KafkaBroker:        getEnv("KAFKA_BROKER", "kafka:9092"),
 		InvoiceKafkaTopic:  getEnv("INVOICE_KAFKA_TOPIC", "invoice-events"),
 	}
 }

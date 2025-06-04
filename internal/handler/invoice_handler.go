@@ -155,7 +155,7 @@ func (h *InvoiceHandler) CreateInvoice(ctx context.Context, req *invoicepb.Creat
 		EventType: "invoice_created",
 	}
 
-	if err := kafka.ProduceInvoiceEvent("localhost:9092", "invoice-events", event); err != nil {
+	if err := kafka.ProduceInvoiceEvent("kafka:9092", "invoice-events", event); err != nil {
 		fmt.Printf("failed to send Kafka event: %v\n", err)
 	}
 
