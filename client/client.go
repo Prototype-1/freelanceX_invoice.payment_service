@@ -9,7 +9,7 @@ import (
 )
 
 func NewProfileServiceClient() profilePb.ProfileServiceClient {
-	conn, err := grpc.NewClient("localhost:50051",
+	conn, err := grpc.NewClient("freelancex_user_service:50051",
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
@@ -19,7 +19,7 @@ func NewProfileServiceClient() profilePb.ProfileServiceClient {
 }
 
 func NewTimeServiceClient() timePb.TimeLogServiceClient {
-	conn, err := grpc.NewClient("localhost:50054",
+	conn, err := grpc.NewClient("freelancex_time_tracker_service:50054",
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
