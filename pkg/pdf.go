@@ -46,7 +46,7 @@ func GenerateInvoicePDF(invoice *model.Invoice) ([]byte, error) {
 	pdf.Ln(8)
 
 	pdf.SetFont("Arial", "B", 14)
-	pdf.Cell(40, 10, fmt.Sprintf("Amount Due: ₹%.2f", invoice.Amount))
+	pdf.Cell(40, 10, fmt.Sprintf("Amount Due: Rs. %.2f", invoice.Amount))
 	pdf.Ln(15)
 
 	pdf.SetFont("Arial", "", 10)
