@@ -19,22 +19,54 @@ spec:
             - containerPort: 50056
           env:
             - name: DB_HOST
-              value: "postgres.default.svc.cluster.local"
+              valueFrom:
+                secretKeyRef:
+                  name: invoice-service-secret
+                  key: DB_HOST
             - name: DB_PORT
-              value: "5432"
+              valueFrom:
+                secretKeyRef:
+                  name: invoice-service-secret
+                  key: DB_PORT
             - name: DB_USER
-              value: "postgres"
+              valueFrom:
+                secretKeyRef:
+                  name: invoice-service-secret
+                  key: DB_USER
             - name: DB_PASSWORD
-              value: "${DB_PASSWORD}"
+              valueFrom:
+                secretKeyRef:
+                  name: invoice-service-secret
+                  key: DB_PASSWORD
             - name: DB_NAME
-              value: "freelancex_invoice_service"
+              valueFrom:
+                secretKeyRef:
+                  name: invoice-service-secret
+                  key: DB_NAME
             - name: PORT
-              value: "50056"
+              valueFrom:
+                secretKeyRef:
+                  name: invoice-service-secret
+                  key: PORT
             - name: RAZORPAY_KEY_ID
-              value: "${RAZORPAY_KEY_ID}"
+              valueFrom:
+                secretKeyRef:
+                  name: invoice-service-secret
+                  key: RAZORPAY_KEY_ID
             - name: RAZORPAY_KEY_SECRET
-              value: "${RAZORPAY_KEY_SECRET}"
+              valueFrom:
+                secretKeyRef:
+                  name: invoice-service-secret
+                  key: RAZORPAY_KEY_SECRET
             - name: KAFKA_BROKER
-              value: "kafka:9092"
+              valueFrom:
+                secretKeyRef:
+                  name: invoice-service-secret
+                  key: KAFKA_BROKER
             - name: INVOICE_KAFKA_TOPIC
-              value: "invoice-events"
+              valueFrom:
+                secretKeyRef:
+                  name: invoice-service-secret
+                  key: INVOICE_KAFKA_TOPIC
+            - name: K8S_ENV
+              value: "true"

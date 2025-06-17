@@ -20,10 +20,13 @@ type Config struct {
 var AppConfig Config
 
 func LoadConfig() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file")
+	if os.Getenv("K8S_ENV") != "true" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatalf("Error loading .env file")
+		}
 	}
+
 
 	AppConfig = Config{
 		DBHost:      getEnv("DB_HOST", "postgres"),
