@@ -2,11 +2,11 @@ name: CI - Invoice Payment Service
 
 on:
   push:
-    paths:
-      - '**.go'
-      - Dockerfile
-      - .github/workflows/ci.yml
-    branches: [ main ]
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:

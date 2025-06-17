@@ -25,14 +25,17 @@ jobs:
         with:
           project_id: freelancex-463106
 
-      - name: Configure Docker for GCR
-        run: gcloud auth configure-docker
+      - name: Install gke-gcloud-auth-plugin
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-cloud-sdk-gke-gcloud-auth-plugin
 
       - name: Set up kubectl
         run: |
           gcloud container clusters get-credentials freelancex-cluster \
             --zone asia-south1-a \
             --project freelancex-463106
+
 
       - name: Deploy to GKE
         run: |
