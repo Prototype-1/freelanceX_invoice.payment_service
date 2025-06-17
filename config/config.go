@@ -20,12 +20,18 @@ type Config struct {
 var AppConfig Config
 
 func LoadConfig() {
-	if os.Getenv("K8S_ENV") != "true" {
-		err := godotenv.Load()
-		if err != nil {
-			log.Fatalf("Error loading .env file")
-		}
-	}
+    k8sEnv := os.Getenv("K8S_ENV")
+    log.Printf("K8S_ENV value: '%s'", k8sEnv) 
+    
+    if k8sEnv != "true" {
+        log.Println("Loading .env file...")
+        err := godotenv.Load()
+        if err != nil {
+            log.Printf("Warning: Error loading .env file: %v", err)
+        }
+    } else {
+        log.Println("Running in Kubernetes environment, skipping .env file")
+    }
 
 
 	AppConfig = Config{
