@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: invoice-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: invoice-service
+  template:
+    metadata:
+      labels:
+        app: invoice-service
+    spec:
+      containers:
+        - name: invoice-service
+          image: aswinputhukaatil/freelancex_invoice_payment_service:latest
+          ports:
+            - containerPort: 50056
+          env:
+            - name: DB_HOST
+              value: "postgres.default.svc.cluster.local"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_USER
+              value: "postgres"
+            - name: DB_PASSWORD
+              value: "${DB_PASSWORD}"
+            - name: DB_NAME
+              value: "freelancex_invoice_service"
+            - name: PORT
+              value: "50056"
+            - name: RAZORPAY_KEY_ID
+              value: "${RAZORPAY_KEY_ID}"
+            - name: RAZORPAY_KEY_SECRET
+              value: "${RAZORPAY_KEY_SECRET}"
+            - name: KAFKA_BROKER
+              value: "kafka:9092"
+            - name: INVOICE_KAFKA_TOPIC
+              value: "invoice-events"
