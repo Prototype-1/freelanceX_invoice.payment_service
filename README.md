@@ -31,6 +31,7 @@ Responsible for generating invoices for completed projects, tracking payments, a
 ```bash
 git clone github.com/Prototype-1/freelanceX_invoice.payment_service.git
 cd freelancex_project/invoice.payment_service
+
 ```
 
 ## Install Dependencies
