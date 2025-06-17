@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: freelancex_invoice_payment_service
+  name: freelancex-invoice-payment-service 
 spec:
   selector:
     app: invoice-service
