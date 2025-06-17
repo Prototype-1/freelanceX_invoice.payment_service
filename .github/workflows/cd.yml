@@ -44,8 +44,8 @@ jobs:
       - name: Deploy to GKE
         run: |
           kubectl delete deployment invoice-service --ignore-not-found
-          envsubst < k8s/deployment.yaml | kubectl apply -f -
-          kubectl apply -f k8s/service.yaml
+          envsubst < k8s/invoice-service/deployment.yaml | kubectl apply -f -
+          kubectl apply -f k8s/invoice-service/service.yaml
         env:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           RAZORPAY_KEY_ID: ${{ secrets.RAZORPAY_KEY_ID }}
