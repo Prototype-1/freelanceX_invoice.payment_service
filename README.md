@@ -11,20 +11,6 @@ Responsible for generating invoices for completed projects, tracking payments, a
 - Razorpay test
 - Kafka producer(invoice)
 
-## Folder Structure
-
-.
-├── config/ # Config loader and .env setup
-├── handler/ # gRPC service implementations
-├── model/ # DB models for invoice and payments
-├── proto/ # Protobuf service definitions
-├── repository/ # Data access layer
-├── service/ # Business logic layer
-├── kafka/ # DB migrations or utilities
-├── main.go # Service entrypoint
-└── go.mod
-
-
 ## Setup
 
 ### 1. Clone & Navigate
